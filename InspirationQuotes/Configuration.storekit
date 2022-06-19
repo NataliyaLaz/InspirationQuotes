@@ -1,0 +1,33 @@
+{
+  "identifier" : "5818BF17",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "773A50E9",
+      "localizations" : [
+        {
+          "description" : "Premium Quotes",
+          "displayName" : "Premium Quotes",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.iosnichek.InspirationQuotes.PremiumQuotes",
+      "referenceName" : "PremiumQuotes",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 2
+  }
+}
