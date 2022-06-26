@@ -39,10 +39,14 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         SKPaymentQueue.default().add(self)// setting our class to be an abserver
         
         tableView.register(QuoteTableViewCell.self, forCellReuseIdentifier: idQuoteTableViewCell)
-   
+        
+        if isPurchased() {
+            showPremiumQuotes()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -67,19 +71,27 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return quotesToShow.count + 1
+        
+        if isPurchased(){
+            return quotesToShow.count
+        } else {
+            return quotesToShow.count + 1
+        }
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: idQuoteTableViewCell, for: indexPath) as! QuoteTableViewCell
        
         if indexPath.row < quotesToShow.count {
         cell.quoteLabel.text = quotesToShow[indexPath.row]
             cell.selectionStyle = .none
+            cell.accessoryType = .none
+            cell.quoteLabel.textColor = .black
         } else {
             cell.quoteLabel.text = "Get More Quotes"
             cell.quoteLabel.textColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
-            cell.accessoryType = .disclosureIndicator
+            cell.accessoryType = .disclosureIndicator// with chevron
             cell.selectionStyle = .default
         }
         return cell
@@ -97,8 +109,8 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
     // MARK: - In-App Purchase Methods
     
     func buyPremiumQuotes() {
+        
         if SKPaymentQueue.canMakePayments() {
-            
             let paymentRequest = SKMutablePayment()
             paymentRequest.productIdentifier = productID
             SKPaymentQueue.default().add(paymentRequest)
@@ -114,14 +126,50 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
             if transaction.transactionState == .purchased {
                 //User payment successful
                 print("Transaction successful")
+                
+                showPremiumQuotes()
+                
+                SKPaymentQueue.default().finishTransaction(transaction)
+                
             } else if transaction.transactionState == .failed {
                 //Payment failed
-                print("Transaction failed!")
+                
+                if let error = transaction.error {
+                    print("Transaction failed! Error: \(error.localizedDescription)")
+                }
+                
+                SKPaymentQueue.default().finishTransaction(transaction)
+                
+            } else if transaction.transactionState == .restored {
+                showPremiumQuotes()
+                
+                SKPaymentQueue.default().finishTransaction(transaction)
+                
+                navigationItem.setRightBarButtonItems(nil, animated: true)
             }
+        }
+    }
+    
+    func showPremiumQuotes() {
+        UserDefaults.standard.set(true, forKey: productID)
+        
+        quotesToShow.append(contentsOf: premiumQuotes)
+       
+        tableView.reloadData()
+    }
+    
+    func isPurchased() -> Bool {
+        if UserDefaults.standard.bool(forKey: productID){
+            print("Previously purchased")
+            return true
+        } else {
+            print("Never purchased")
+            return false
         }
     }
 
     @IBAction func restorePressed(_ sender: UIBarButtonItem) {
+        SKPaymentQueue.default().restoreCompletedTransactions()
         print( "Restore pressed")
     }
 }
